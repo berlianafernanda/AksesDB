@@ -19,12 +19,16 @@ import org.json.JSONObject
 class ManageFakultasActivity : AppCompatActivity() {
     lateinit var i: Intent
     lateinit var add:Button
+    lateinit var delete:Button
+    lateinit var edit:Button
 
     override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_manage_fakultas)
 
         add = findViewById(R.id.btnCreate)
+        edit = findViewById(R.id.btnUpdate)
+        delete = findViewById(R.id.btnDelete)
 
         i = intent
 
@@ -36,6 +40,13 @@ class ManageFakultasActivity : AppCompatActivity() {
         add.setOnClickListener{
             onCreate()
         }
+        add.setOnclickListener{
+            onUpdate()
+        }
+        add.setOnClickListener{
+            onDelete()
+    }
+        
     }
 
     private fun onCreate() {
@@ -80,5 +91,34 @@ class ManageFakultasActivity : AppCompatActivity() {
                 }
 
             })
+    }
+    private fun onDelete() {
+        val loading = ProgressDialog(this)
+        loading.setMessage("Mengubah data...")
+        loading.show()
+
+        AndroidNetworking.post(ApiEndPoint.DELETE)
+            .addBodyParameter("idfakultas", txt_idfakultas.text.toString())
+            .addBodyParameter("kode_fakultas", txt_kodefakultas.text.toString())
+            .addBodyParameter("nama_fakultas", txt_namafakultas.text.toString())
+            .setPriority(Priority.MEDIUM)
+            .build()
+            .getAsJSONObject(object : JSONObjectRequestListener{
+                override fun onResponse(response: JSONObject?) {
+                    loading.dismiss()
+                    Toast.makeText(applicationContext,response?.getString("massage"),Toast.LENGTH_SHORT).show()
+
+                    if (response?.getString("message")?.contains("successfully")!!){
+                        this@ManageFakultasActivity.finish()
+                    }
+                }
+
+                override fun onError(anError: ANError?) {
+                    loading.dismiss()
+                    Log.d("ONERROR",anError?.errorDetail?.toString())
+                    Toast.makeText(applicationContext,"Connection Failed", Toast.LENGTH_SHORT).show()
+                }
+            })
+
     }
 }
